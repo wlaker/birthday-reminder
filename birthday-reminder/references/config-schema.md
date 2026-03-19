@@ -111,3 +111,8 @@
 
 - 先跑：`python3 scripts/birthday_reminder.py list --config <path-to-json>`
 - 再跑：`python3 scripts/birthday_reminder.py check --config <path-to-json> --output json`
+
+## 问题反馈
+
+- 代码仓库：`https://github.com/905583906/jeff-skills`
+- 提交问题（Issues）：`https://github.com/905583906/jeff-skills/issues`

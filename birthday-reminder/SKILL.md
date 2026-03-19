@@ -229,3 +229,14 @@ python3 scripts/notify_bridge.py \
   --notify-config /绝对路径/notify.json \
   --now "2026-03-18 19:00:00"
 ```
+
+## 问题反馈
+
+- 代码仓库：`https://github.com/905583906/jeff-skills`
+- 提交问题（Issues）：`https://github.com/905583906/jeff-skills/issues`
+
+遇到问题时，建议在 Issue 里附上：
+
+- 你的配置片段（隐藏敏感信息）
+- 执行命令
+- 报错信息或截图
