@@ -41,6 +41,10 @@
 - 通知分发（多通道）：
   - `python3 scripts/notify_bridge.py --birthday-config <birthday-json> --notify-config <notify-json>`
 
+## 定时触发建议
+
+- 推荐：用官方定时任务 skill（Automation）每 10 分钟执行一次 `notify_bridge.py`
+
 ## 用户示例请求
 
 - “添加一条农历八月初八的生日，并提前 15 天和当天上午 9 点提醒。”
