@@ -35,15 +35,17 @@
 ## 相关命令
 
 - 检查当前窗口到期提醒：
-  - `python3 scripts/birthday_reminder.py check --config <path-to-json>`
+  - `python3 {baseDir}/scripts/birthday_reminder.py check --config <path-to-json>`
 - 列出所有已配置提醒（按下一次生日计算）：
-  - `python3 scripts/birthday_reminder.py list --config <path-to-json>`
+  - `python3 {baseDir}/scripts/birthday_reminder.py list --config <path-to-json>`
 - 通知分发（多通道）：
-  - `python3 scripts/notify_bridge.py --birthday-config <birthday-json> --notify-config <notify-json>`
+  - `python3 {baseDir}/scripts/notify_bridge.py --birthday-config <birthday-json> --notify-config <notify-json>`
 
 ## 定时触发建议
 
-- 推荐：用官方定时任务 skill（Automation）每 10 分钟执行一次 `notify_bridge.py`
+- 这个 skill 本身不自动创建定时任务。
+- 如果在 OpenClaw 中使用，推荐创建一个每 10 分钟执行一次的 Cron 作业，唤起 agent 使用本 skill。
+- 作为 Cron 后台任务时，建议使用 `isolated` 会话并关闭额外投递，避免重复消息。
 
 ## 用户示例请求
 
@@ -113,8 +115,8 @@
 
 ## 校验建议
 
-- 先跑：`python3 scripts/birthday_reminder.py list --config <path-to-json>`
-- 再跑：`python3 scripts/birthday_reminder.py check --config <path-to-json> --output json`
+- 先跑：`python3 {baseDir}/scripts/birthday_reminder.py list --config <path-to-json>`
+- 再跑：`python3 {baseDir}/scripts/birthday_reminder.py check --config <path-to-json> --output json`
 
 ## 问题反馈
 
