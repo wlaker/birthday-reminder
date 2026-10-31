@@ -188,7 +188,10 @@ def scheduled_times(person: PersonConfig, now: dt.datetime) -> list[tuple[dt.dat
 
     candidates = []
     for year in (now_local.year - 1, now_local.year, now_local.year + 1, now_local.year + 2):
-        birthday = birthday_date_for_year(person, year)
+        try:
+            birthday = birthday_date_for_year(person, year)
+        except ValueError:
+            continue
         for offset in person.offset_days:
             remind_day = birthday - dt.timedelta(days=offset)
             remind_dt = dt.datetime(
@@ -225,7 +228,7 @@ def check_due(config: dict, now: dt.datetime, window_minutes: int) -> list[dict]
                         "birthday_date": birthday.isoformat(),
                         "offset_days": offset,
                         "remind_at": remind_dt.isoformat(),
-                        "message": f"{person.name} 生日提醒：{'当天' if offset == 0 else f'提前 {offset} 天'}（生日 {birthday.isoformat()}）",
+                        "message": f"{person.name} 生日提醒：{'当天' if offset == 0 else f'提前 {offset} 天'}（{'农历生日' if person.calendar == 'lunar' else '阳历生日'} {birthday.isoformat()}）",
                     }
                 )
 
@@ -330,8 +333,10 @@ def cmd_list(args: argparse.Namespace) -> int:
             return 0
         for row in rows:
             offset_text = "当天" if row["offset_days"] == 0 else f"提前 {row['offset_days']} 天"
+            calendar_icon = "🌙" if row["calendar"] == "lunar" else "☀️"
+            calendar_type = "农历" if row["calendar"] == "lunar" else "阳历"
             print(
-                f"[{row['remind_at']}] {row['name']} ({row['calendar']}) {offset_text} "
+                f"[{row['remind_at']}] {calendar_icon} {row['name']} ({calendar_type}) {offset_text} "
                 f"-> 生日 {row['birthday_date']} ({row['timezone']})"
             )
     return 0

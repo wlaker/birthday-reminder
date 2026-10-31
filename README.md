@@ -1,6 +1,6 @@
-# jeff-skills
+# birthday-reminder-skills
 
-仅支持 OpenClaw 的自定义 skills 仓库。当前包含一个可公开分发的生日提醒 skill。
+仅支持 OpenClaw 的自定义 skills 仓库。当前包含一个可公开分发的生日提醒 skill，支持通过微信推送生日提醒消息。
 
 ## 仓库结构
 

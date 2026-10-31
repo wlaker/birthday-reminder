@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import subprocess
 import argparse
 import datetime as dt
 import json
@@ -25,6 +26,27 @@ def post_json(url: str, payload: dict, timeout: int = 10) -> None:
     with urllib.request.urlopen(req, timeout=timeout):
         pass
 
+def call_tool_send(url: str, payload: dict, timeout: int = 10) -> None:
+    text_content = payload.get("text", "")
+    message_tool = payload.get("message_tool", "")
+    if not text_content:
+        # 如果没有 text 内容，直接返回
+        return
+
+    message = text_content.encode("utf-8").decode("utf-8")
+    cmd = [message_tool, "send", message]
+    #print(f"消息工具: {message_tool}, 发送消息: {message}")
+
+    try:
+        subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False
+        )
+    except Exception as e:
+        print(f"消息发送失败: {e}")
 
 def _format_datetime(iso_str: str) -> str:
     try:
@@ -116,6 +138,9 @@ def send_telegram(text: str, channel: dict) -> None:
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     post_json(url, {"chat_id": channel["chat_id"], "text": text})
 
+def send_weixin(text: str, channel: dict) -> None:
+    url = f"https://ilinkai.weixin.qq.com"
+    call_tool_send(url, {"message_tool": channel["message_tool"], "text": text})
 
 SENDERS = {
     "console": lambda text, rows, c: send_console(text, c),
@@ -125,6 +150,7 @@ SENDERS = {
     "dingtalk": lambda text, rows, c: send_dingtalk(text, c),
     "slack": lambda text, rows, c: send_slack(text, c),
     "telegram": lambda text, rows, c: send_telegram(text, c),
+    "openclaw-weixin": lambda text, rows, c: send_weixin(text, c),
 }
 
 
@@ -165,7 +191,7 @@ def main() -> int:
         if not sender:
             raise ValueError(f"不支持的通知类型: {channel_type}")
         if args.dry_run:
-            print(f"[dry-run] {channel_type}: {text}")
+            print(f"[dry-run show]{channel_type}: {text}")
             continue
         sender(text, rows, channel)
     return 0

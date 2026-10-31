@@ -1,0 +1,40 @@
+{
+  "defaults": {
+    "calendar": "solar",
+    "timezone": "Asia/Shanghai",
+    "remind_at": "09:00",
+    "offset_days": [7, 1, 0],
+    "leap_strategy": "use-non-leap"
+  },
+  "people": [
+    {
+      "name": "自己",
+      "calendar": "lunar",
+      "month": 11,
+      "day": 11,
+      "remind_at": "09:00"
+    },
+    {
+      "name": "妻子",
+      "calendar": "solar",
+      "month": 5,
+      "day": 29,
+      "remind_at": "09:00"
+    },
+    {
+      "name": "姐",
+      "calendar": "lunar",
+      "month": 10,
+      "day": 12,
+      "remind_at": "09:00"
+    },
+    {
+      "name": "父母",
+      "calendar": "lunar",
+      "month": 5,
+      "day": 29,
+      "offset_days": [15, 3, 1, 0],
+      "remind_at": "09:00"
+    }
+  ]
+}

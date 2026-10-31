@@ -1,6 +1,7 @@
 # birthday-reminder
 
-一个仅面向 OpenClaw 的生日提醒 skill。它负责告诉 agent 如何读取生日配置、计算提醒时间，并调用本地 Python 脚本把到期提醒发到指定通道。
+- 一个仅面向 OpenClaw 的生日提醒 skill。它负责告诉 agent 如何读取生日配置、计算提醒时间，并调用本地 Python 脚本把到期提醒发到指定通道。
+- 支持通过微信推送自动化消息，该功能需要配合项目 `https://github.com/lroolle/wxclawbot-cli` 一起来实现
 
 ## 支持范围
 

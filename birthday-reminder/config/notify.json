@@ -1,0 +1,16 @@
+{
+  "message_style": "warm",
+  "channels": [
+    {
+      "type": "console",
+      "enabled": true
+    },
+    {
+      "type": "openclaw-weixin",
+      "enabled": true,
+      "bot_token": "xxxx@im.wecha",
+      "chat_id": "yyyy-im-bot",
+      "message_tool": "/home/bot/.npm-global/bin/wxclawbot"
+    }
+  ]
+}

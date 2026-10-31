@@ -11,12 +11,12 @@
 
 ## 需要修改的文件
 
-- [birthdays.json](/D:/skills/jeff-skills/birthday-reminder/quickstart/birthdays.json)
-- [notify.json](/D:/skills/jeff-skills/birthday-reminder/quickstart/notify.json)
+- [birthdays.json](birthday-reminder/quickstart/birthdays.json)
+- [notify.json](birthday-reminder/quickstart/notify.json)
 
 ## 推荐步骤
 
-1. 把 `birthdays.json` 里的示例联系人改成你自己的生日数据
+1. 把 `birthdays.json` 里的示例联系人改成你自己的生日数据，支持农历（lunar）和阳历（solar）生日提醒
 2. 在 `notify.json` 里至少启用一个真实通知通道
 3. 先手动跑一次 `--dry-run`
 4. 再创建 OpenClaw Cron
@@ -24,8 +24,9 @@
 ## 手动测试
 
 ```bash
-python3 /绝对路径/birthday-reminder/scripts/birthday_reminder.py list --config /绝对路径/birthday-reminder/quickstart/birthdays.json
-python3 /绝对路径/birthday-reminder/scripts/notify_bridge.py --birthday-config /绝对路径/birthday-reminder/quickstart/birthdays.json --notify-config /绝对路径/birthday-reminder/quickstart/notify.json --dry-run
+python3 birthday-reminder/scripts/birthday_reminder.py list --config birthday-reminder/quickstart/birthdays.json
+python3 birthday-reminder/scripts/birthday_reminder.py check --config birthday-reminder/quickstart/birthdays.json --now "2026-11-18 09:00:00" 
+python3 birthday-reminder/scripts/notify_bridge.py --birthday-config birthday-reminder/quickstart/birthdays.json --notify-config birthday-reminder/quickstart/notify.json --window-minutes 180 --now "2026-11-18 09:00:00" --dry-run
 ```
 
 ## 创建 Cron
