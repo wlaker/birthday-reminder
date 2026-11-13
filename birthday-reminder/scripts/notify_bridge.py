@@ -13,7 +13,7 @@ import json
 import urllib.request
 from pathlib import Path
 
-from birthday_reminder import DEFAULT_TZ, check_due, load_config, parse_now
+from birthday_reminder import DEFAULT_TZ, check_due, load_config, parse_now, solar_to_lunar
 
 
 def post_json(url: str, payload: dict, timeout: int = 10) -> None:
@@ -48,6 +48,18 @@ def call_tool_send(url: str, payload: dict, timeout: int = 10) -> None:
     except Exception as e:
         print(f"消息发送失败: {e}")
 
+def _birthday_date_text(row: dict) -> str:
+    """农历生日显示真正的农历日期，阳历生日显示阳历日期。"""
+    if row["calendar"] != "lunar":
+        return f"阳历 {row['birthday_date']}"
+    try:
+        ly, lm, ld, is_leap = solar_to_lunar(dt.date.fromisoformat(row["birthday_date"]))
+    except ValueError:
+        return f"农历 {row['birthday_date']}"
+    leap = "闰" if is_leap else ""
+    return f"农历 {leap}{ly}-{lm:02d}-{ld:02d}"
+
+
 def _format_datetime(iso_str: str) -> str:
     try:
         ts = dt.datetime.fromisoformat(iso_str)
@@ -65,20 +77,18 @@ def format_text(rows: list[dict], style: str = "warm") -> str:
         lines = [f"生日提醒（共 {len(rows)} 条）"]
         for row in rows:
             phase = "今天生日" if row["offset_days"] == 0 else f"还有 {row['offset_days']} 天"
-            cal = "阳历" if row["calendar"] == "solar" else "农历"
             remind_time = _format_datetime(row["remind_at"])
             lines.append(
-                f"- {row['name']}：{phase}｜{cal}生日 {row['birthday_date']}｜提醒 {remind_time}"
+                f"- {row['name']}：{phase}｜{_birthday_date_text(row)} 生日｜提醒 {remind_time}"
             )
         return "\n".join(lines)
 
     lines = [f"🎂 生日小提醒（共 {len(rows)} 条）"]
     for row in rows:
         phase = "就是今天" if row["offset_days"] == 0 else f"还有 {row['offset_days']} 天"
-        cal = "阳历" if row["calendar"] == "solar" else "农历"
         remind_time = _format_datetime(row["remind_at"])
         lines.append(
-            f"🎉 {row['name']}：{phase}过生日（{cal} {row['birthday_date']}），提醒时间 {remind_time}"
+            f"🎉 {row['name']}：{phase}过生日（{_birthday_date_text(row)}），提醒时间 {remind_time}"
         )
     return "\n".join(lines)
 

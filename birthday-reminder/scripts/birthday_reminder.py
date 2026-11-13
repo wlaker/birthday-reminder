@@ -74,12 +74,22 @@ def month_days(year: int, month: int) -> int:
 
 
 def lunar_year_days(year: int) -> int:
+    info = LUNAR_INFO[year - 1900]
     total = 348
     mask = 0x8000
     while mask > 0x8:
-        total += 1 if (LUNAR_INFO[year - 1900] & mask) else 0
+        total += 1 if info & mask else 0
         mask >>= 1
     return total + leap_days(year)
+
+
+# 各农历年相对 1900-01-31 的累计天数偏移（O(1) 定位年份）
+_BASE_DATE = dt.date(1900, 1, 31)
+_YEAR_OFFSET = [0]
+for _y in range(1900, 1900 + len(LUNAR_INFO)):
+    _YEAR_OFFSET.append(_YEAR_OFFSET[-1] + lunar_year_days(_y))
+_TOTAL_DAYS = _YEAR_OFFSET[-1]
+_MAX_DATE = _BASE_DATE + dt.timedelta(days=_TOTAL_DAYS - 1)
 
 
 def lunar_to_solar(year: int, month: int, day: int, is_leap_month: bool) -> dt.date:
@@ -94,9 +104,7 @@ def lunar_to_solar(year: int, month: int, day: int, is_leap_month: bool) -> dt.d
     if is_leap_month and leap_month != month:
         raise ValueError(f"{year} 年没有闰 {month} 月")
 
-    offset = 0
-    for y in range(1900, year):
-        offset += lunar_year_days(y)
+    offset = _YEAR_OFFSET[year - 1900]
 
     for m in range(1, month):
         offset += month_days(year, m)
@@ -111,8 +119,63 @@ def lunar_to_solar(year: int, month: int, day: int, is_leap_month: bool) -> dt.d
         raise ValueError(f"{year} 年农历 {'闰' if is_leap_month else ''}{month} 月没有 {day} 日")
 
     offset += day - 1
-    base = dt.date(1900, 1, 31)
-    return base + dt.timedelta(days=offset)
+    return _BASE_DATE + dt.timedelta(days=offset)
+
+
+def solar_to_lunar(date: dt.date) -> tuple[int, int, int, bool]:
+    """公历 -> 农历，返回 (农历年, 农历月, 农历日, 是否闰月)。仅支持 1900-2099。"""
+    if date < _BASE_DATE or date > _MAX_DATE:
+        raise ValueError("农历转换超出内置数据表范围")
+
+    offset = (date - _BASE_DATE).days
+
+    # 二分查找所在农历年，避免线性扫描
+    lo, hi = 0, len(_YEAR_OFFSET) - 1
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if _YEAR_OFFSET[mid] <= offset:
+            lo = mid
+        else:
+            hi = mid - 1
+    year = 1900 + lo
+    offset -= _YEAR_OFFSET[lo]
+
+    leap_month = leap_month_of_year(year)
+    month = 1
+    while True:
+        days = month_days(year, month)
+        if offset < days:
+            return year, month, offset + 1, False
+        offset -= days
+        if leap_month == month:
+            days = leap_days(year)
+            if offset < days:
+                return year, month, offset + 1, True
+            offset -= days
+        month += 1
+
+
+def birthday_label(person: PersonConfig, solar_birthday: dt.date) -> str:
+    """农历生日显示真正的农历日期，阳历生日显示阳历日期。"""
+    if person.calendar != "lunar":
+        return f"阳历生日 {solar_birthday.isoformat()}"
+    try:
+        ly, lm, ld, is_leap = solar_to_lunar(solar_birthday)
+    except ValueError:
+        leap = "闰" if person.leap_month else ""
+        return f"农历生日 {leap}{person.month}月{person.day}日"
+    leap = "闰" if is_leap else ""
+    return f"农历生日 {leap}{ly}-{lm:02d}-{ld:02d}"
+
+
+def lunar_suffix(solar: dt.date) -> str:
+    """返回 '（农历 YYYY-MM-DD）' 形式后缀；超出支持范围时返回空串。"""
+    try:
+        ly, lm, ld, is_leap = solar_to_lunar(solar)
+    except ValueError:
+        return ""
+    leap = " 闰月" if is_leap else ""
+    return f"（农历 {ly}-{lm:02d}-{ld:02d}{leap}）"
 
 
 def parse_hhmm(hhmm: str) -> tuple[int, int]:
@@ -228,7 +291,7 @@ def check_due(config: dict, now: dt.datetime, window_minutes: int) -> list[dict]
                         "birthday_date": birthday.isoformat(),
                         "offset_days": offset,
                         "remind_at": remind_dt.isoformat(),
-                        "message": f"{person.name} 生日提醒：{'当天' if offset == 0 else f'提前 {offset} 天'}（{'农历生日' if person.calendar == 'lunar' else '阳历生日'} {birthday.isoformat()}）",
+                        "message": f"{person.name} 生日提醒：{'当天' if offset == 0 else f'提前 {offset} 天'}（{birthday_label(person, birthday)}）",
                     }
                 )
 
@@ -335,9 +398,10 @@ def cmd_list(args: argparse.Namespace) -> int:
             offset_text = "当天" if row["offset_days"] == 0 else f"提前 {row['offset_days']} 天"
             calendar_icon = "🌙" if row["calendar"] == "lunar" else "☀️"
             calendar_type = "农历" if row["calendar"] == "lunar" else "阳历"
+            lunar_text = lunar_suffix(dt.date.fromisoformat(row["birthday_date"]))
             print(
                 f"[{row['remind_at']}] {calendar_icon} {row['name']} ({calendar_type}) {offset_text} "
-                f"-> 生日 {row['birthday_date']} ({row['timezone']})"
+                f"-> 生日 {row['birthday_date']}{lunar_text} ({row['timezone']})"
             )
     return 0
 
